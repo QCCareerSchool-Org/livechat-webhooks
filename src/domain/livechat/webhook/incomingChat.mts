@@ -1,21 +1,24 @@
-import type { Chat } from '../chat.mjs';
-import { isChat } from '../chat.mjs';
-import { isWebhookRequest, type WebhookRequest } from './index.mjs';
+import { z } from 'zod';
 
-export interface IncomingChat extends WebhookRequest {
-  action: 'incoming_chat';
-  payload: {
-    chat: Chat;
-  };
+import type { Chat } from '../chat.mjs';
+import { chatSchema } from '../chat.mjs';
+import { createWebhookRequestSchema, type WebhookRequest } from './index.mjs';
+
+interface IncomingChatPayload {
+  chat: Chat;
 }
 
-export const isIncomingChat = (value: unknown): value is IncomingChat => {
-  return isWebhookRequest(value)
-    && value.action === 'incoming_chat'
-    && isPayload(value.payload);
-};
+export type IncomingChat = WebhookRequest<'incoming_chat', IncomingChatPayload>;
 
-const isPayload = (value: unknown): value is { chat: Chat } => {
-  return typeof value === 'object' && value !== null
-    && 'chat' in value && isChat(value.chat);
+const incomingChatPayloadSchema = z.looseObject({
+  chat: chatSchema,
+}) satisfies z.ZodType<IncomingChatPayload>;
+
+export const incomingChatSchema = createWebhookRequestSchema(
+  'incoming_chat',
+  incomingChatPayloadSchema,
+) satisfies z.ZodType<IncomingChat>;
+
+export const isIncomingChat = (value: unknown): value is IncomingChat => {
+  return incomingChatSchema.safeParse(value).success;
 };

@@ -1,5 +1,7 @@
+import { z } from 'zod';
+
 import type { BaseEventResponse } from './base.mjs';
-import { isBaseEventResponse } from './base.mjs';
+import { createBaseEventResponseSchema } from './base.mjs';
 
 const aiAgentSystemSubtypes = [
   'custom_skill_awaiting_feedback',
@@ -41,30 +43,38 @@ type SystemActivity = {
 
 export type SystemResponse = SystemResponseBase & SystemActivity;
 
+export const aiAgentSystemSubtypeSchema = z.enum(aiAgentSystemSubtypes) satisfies z.ZodType<AiAgentSystemSubtype>;
+
+export const cdpSystemSubtypeSchema = z.enum(cdpSystemSubtypes) satisfies z.ZodType<CdpSystemSubtype>;
+
+export const messagingSystemSubtypeSchema = z.enum(messagingSystemSubtypes) satisfies z.ZodType<MessagingSystemSubtype>;
+
+const systemResponseBaseSchema = createBaseEventResponseSchema('system').extend({
+  version: z.number(),
+  details: z.string(),
+}) satisfies z.ZodType<SystemResponseBase>;
+
+const aiAgentSystemResponseSchema = systemResponseBaseSchema.extend({
+  source: z.literal('ai_agents'),
+  subtype: aiAgentSystemSubtypeSchema,
+}) satisfies z.ZodType<SystemResponseBase & Extract<SystemActivity, { source: 'ai_agents' }>>;
+
+const cdpSystemResponseSchema = systemResponseBaseSchema.extend({
+  source: z.literal('cdp'),
+  subtype: cdpSystemSubtypeSchema,
+}) satisfies z.ZodType<SystemResponseBase & Extract<SystemActivity, { source: 'cdp' }>>;
+
+const messagingSystemResponseSchema = systemResponseBaseSchema.extend({
+  source: z.literal('messaging'),
+  subtype: messagingSystemSubtypeSchema,
+}) satisfies z.ZodType<SystemResponseBase & Extract<SystemActivity, { source: 'messaging' }>>;
+
+export const systemResponseSchema = z.discriminatedUnion('source', [
+  aiAgentSystemResponseSchema,
+  cdpSystemResponseSchema,
+  messagingSystemResponseSchema,
+]) satisfies z.ZodType<SystemResponse>;
+
 export const isSystemResponse = (value: unknown): value is SystemResponse => {
-  return isBaseEventResponse(value, 'system')
-    && isSystemActivity(value)
-    && 'version' in value && typeof value.version === 'number'
-    && 'details' in value && typeof value.details === 'string';
-};
-
-const isSystemActivity = (value: unknown): value is SystemActivity => {
-  return typeof value === 'object' && value !== null
-    && 'source' in value
-    && 'subtype' in value
-    && ((value.source === 'ai_agents' && isAiAgentSystemSubtype(value.subtype))
-      || (value.source === 'cdp' && isCdpSystemSubtype(value.subtype))
-      || (value.source === 'messaging' && isMessagingSystemSubtype(value.subtype)));
-};
-
-const isAiAgentSystemSubtype = (value: unknown): value is AiAgentSystemSubtype => {
-  return typeof value === 'string' && (aiAgentSystemSubtypes as readonly string[]).includes(value);
-};
-
-const isCdpSystemSubtype = (value: unknown): value is CdpSystemSubtype => {
-  return typeof value === 'string' && (cdpSystemSubtypes as readonly string[]).includes(value);
-};
-
-const isMessagingSystemSubtype = (value: unknown): value is MessagingSystemSubtype => {
-  return typeof value === 'string' && (messagingSystemSubtypes as readonly string[]).includes(value);
+  return systemResponseSchema.safeParse(value).success;
 };

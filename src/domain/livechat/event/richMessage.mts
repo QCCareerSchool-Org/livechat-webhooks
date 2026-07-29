@@ -1,7 +1,10 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { Properties } from '../properties.mjs';
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
-import { isProperties } from '../properties.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+import { propertiesSchema } from '../properties.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 
 export interface RichMessageRequest extends BaseEventRequest<'rich_message'> {
   properties?: Properties;
@@ -36,13 +39,15 @@ interface Image {
   alternative_text?: string;
 }
 
-type Button = {
+interface BaseButton {
   text: string;
   value: string;
   postback_id: string;
   user_ids: string[];
   target?: 'new' | 'current';
-} & ({
+}
+
+type Button = BaseButton & ({
   type: 'webview';
   webview_height: 'compact' | 'full' | 'tall';
 } | {
@@ -85,98 +90,101 @@ interface Addon {
   currency?: string;
 }
 
+const templateIdSchema = z.enum([ 'cards', 'sticker', 'quick_replies', 'ecommerce' ]) satisfies z.ZodType<TemplateId>;
+
+const ecommerceViewTypeSchema = z.enum([ 'tags', 'swatch', 'images', 'select' ]) satisfies z.ZodType<EcommerceViewType>;
+
+const imageSchema = z.looseObject({
+  url: z.string(),
+  name: z.string().optional(),
+  content_type: z.string().optional(),
+  size: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  alternative_text: z.string().optional(),
+}) satisfies z.ZodType<Image>;
+
+const baseButtonSchema = z.looseObject({
+  text: z.string(),
+  value: z.string(),
+  postback_id: z.string(),
+  user_ids: z.array(z.string()),
+  target: z.enum([ 'new', 'current' ]).optional(),
+}) satisfies z.ZodType<BaseButton>;
+
+const buttonSchema = z.union([
+  baseButtonSchema.extend({
+    type: z.literal('webview'),
+    webview_height: z.enum([ 'compact', 'full', 'tall' ]),
+  }),
+  baseButtonSchema.extend({
+    type: z.enum([ 'message', 'url', 'phone' ]),
+    webview_height: z.enum([ 'compact', 'full', 'tall' ]).optional(),
+  }),
+]) satisfies z.ZodType<Button>;
+
+const optionSchema = z.looseObject({
+  option_id: z.string(),
+  label: z.string(),
+  price: z.string().optional(),
+  regular_price: z.string().optional(),
+  currency: z.string().optional(),
+  color: z.string().optional(),
+  image_url: z.string().optional(),
+  image_thumbnail_url: z.string().optional(),
+  available: z.boolean().optional(),
+  selected: z.boolean().optional(),
+}) satisfies z.ZodType<Option>;
+
+const addonSchema = z.looseObject({
+  addon_type: z.string(),
+  range_from: z.string().optional(),
+  range_to: z.string().optional(),
+  currency: z.string().optional(),
+}) satisfies z.ZodType<Addon>;
+
+const ecommerceSchema = z.looseObject({
+  view_type: ecommerceViewTypeSchema.optional(),
+  product_id: z.string().optional(),
+  label: z.string().optional(),
+  options: z.array(optionSchema).optional(),
+  addons: z.array(addonSchema).optional(),
+}) satisfies z.ZodType<Ecommerce>;
+
+const requestEcommerceSchema = ecommerceSchema.extend({
+  view_type: ecommerceViewTypeSchema,
+  product_id: z.string(),
+}) satisfies z.ZodType<RequestEcommerce>;
+
+const elementSchema = z.looseObject({
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  image: imageSchema.optional(),
+  buttons: z.array(buttonSchema).optional(),
+  ecommerce: ecommerceSchema.optional(),
+}) satisfies z.ZodType<Element>;
+
+const requestElementSchema = elementSchema.extend({
+  ecommerce: requestEcommerceSchema.optional(),
+}) satisfies z.ZodType<Element<RequestEcommerce>>;
+
+export const richMessageRequestSchema = createBaseEventRequestSchema('rich_message').extend({
+  properties: propertiesSchema.optional(),
+  template_id: templateIdSchema,
+  elements: z.array(requestElementSchema).optional(),
+}) satisfies z.ZodType<RichMessageRequest>;
+
+export const richMessageResponseSchema = createBaseEventResponseSchema('rich_message').extend({
+  author_id: z.string(),
+  properties: propertiesSchema.optional(),
+  template_id: templateIdSchema,
+  elements: z.array(elementSchema).optional(),
+}) satisfies z.ZodType<RichMessageResponse>;
+
 export const isRichMessageRequest = (value: unknown): value is RichMessageRequest => {
-  return isBaseEventRequest(value, 'rich_message')
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'template_id' in value && isTemplateId(value.template_id)
-    && (('elements' in value && Array.isArray(value.elements) && value.elements.every(isRequestElement)) || (!('elements' in value)));
+  return richMessageRequestSchema.safeParse(value).success;
 };
 
 export const isRichMessageResponse = (value: unknown): value is RichMessageResponse => {
-  return isBaseEventResponse(value, 'rich_message')
-    && 'author_id' in value && typeof value.author_id === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'template_id' in value && isTemplateId(value.template_id)
-    && (('elements' in value && Array.isArray(value.elements) && value.elements.every(isElement)) || (!('elements' in value)));
-};
-
-const isTemplateId = (value: unknown): value is TemplateId => {
-  return value === 'cards' || value === 'sticker' || value === 'quick_replies' || value === 'ecommerce';
-};
-
-const isElement = (value: unknown): value is Element => {
-  return typeof value === 'object' && value !== null
-    && (('title' in value && typeof value.title === 'string') || (!('title' in value)))
-    && (('subtitle' in value && typeof value.subtitle === 'string') || (!('subtitle' in value)))
-    && (('image' in value && isImage(value.image)) || (!('image' in value)))
-    && (('buttons' in value && Array.isArray(value.buttons) && value.buttons.every(isButton)) || (!('buttons' in value)))
-    && (('ecommerce' in value && isEcommerce(value.ecommerce)) || (!('ecommerce' in value)));
-};
-
-const isRequestElement = (value: unknown): value is Element<RequestEcommerce> => {
-  return isElement(value)
-    && (('ecommerce' in value && isRequestEcommerce(value.ecommerce)) || (!('ecommerce' in value)));
-};
-
-const isImage = (value: unknown): value is Image => {
-  return typeof value === 'object' && value !== null
-    && 'url' in value && typeof value.url === 'string'
-    && (('name' in value && typeof value.name === 'string') || (!('name' in value)))
-    && (('content_type' in value && typeof value.content_type === 'string') || (!('content_type' in value)))
-    && (('size' in value && typeof value.size === 'number') || (!('size' in value)))
-    && (('width' in value && typeof value.width === 'number') || (!('width' in value)))
-    && (('height' in value && typeof value.height === 'number') || (!('height' in value)))
-    && (('alternative_text' in value && typeof value.alternative_text === 'string') || (!('alternative_text' in value)));
-};
-
-const isButton = (value: unknown): value is Button => {
-  return typeof value === 'object' && value !== null
-    && 'text' in value && typeof value.text === 'string'
-    && 'type' in value && (value.type === 'webview' || value.type === 'message' || value.type === 'url' || value.type === 'phone')
-    && 'value' in value && typeof value.value === 'string'
-    && (('webview_height' in value && (value.webview_height === 'compact' || value.webview_height === 'full' || value.webview_height === 'tall')) || (!('webview_height' in value) && value.type !== 'webview'))
-    && 'postback_id' in value && typeof value.postback_id === 'string'
-    && 'user_ids' in value && Array.isArray(value.user_ids) && value.user_ids.every((userId: unknown) => typeof userId === 'string')
-    && (('target' in value && (value.target === 'new' || value.target === 'current')) || (!('target' in value)));
-};
-
-const isEcommerce = (value: unknown): value is Ecommerce => {
-  return typeof value === 'object' && value !== null
-    && (('view_type' in value && isEcommerceViewType(value.view_type)) || (!('view_type' in value)))
-    && (('product_id' in value && typeof value.product_id === 'string') || (!('product_id' in value)))
-    && (('label' in value && typeof value.label === 'string') || (!('label' in value)))
-    && (('options' in value && Array.isArray(value.options) && value.options.every(isOption)) || (!('options' in value)))
-    && (('addons' in value && Array.isArray(value.addons) && value.addons.every(isAddon)) || (!('addons' in value)));
-};
-
-const isRequestEcommerce = (value: unknown): value is RequestEcommerce => {
-  return isEcommerce(value)
-    && 'view_type' in value && isEcommerceViewType(value.view_type)
-    && 'product_id' in value && typeof value.product_id === 'string';
-};
-
-const isEcommerceViewType = (value: unknown): value is EcommerceViewType => {
-  return value === 'tags' || value === 'swatch' || value === 'images' || value === 'select';
-};
-
-const isOption = (value: unknown): value is Option => {
-  return typeof value === 'object' && value !== null
-    && 'option_id' in value && typeof value.option_id === 'string'
-    && 'label' in value && typeof value.label === 'string'
-    && (('price' in value && typeof value.price === 'string') || (!('price' in value)))
-    && (('regular_price' in value && typeof value.regular_price === 'string') || (!('regular_price' in value)))
-    && (('currency' in value && typeof value.currency === 'string') || (!('currency' in value)))
-    && (('color' in value && typeof value.color === 'string') || (!('color' in value)))
-    && (('image_url' in value && typeof value.image_url === 'string') || (!('image_url' in value)))
-    && (('image_thumbnail_url' in value && typeof value.image_thumbnail_url === 'string') || (!('image_thumbnail_url' in value)))
-    && (('available' in value && typeof value.available === 'boolean') || (!('available' in value)))
-    && (('selected' in value && typeof value.selected === 'boolean') || (!('selected' in value)));
-};
-
-const isAddon = (value: unknown): value is Addon => {
-  return typeof value === 'object' && value !== null
-    && 'addon_type' in value && typeof value.addon_type === 'string'
-    && (('range_from' in value && typeof value.range_from === 'string') || (!('range_from' in value)))
-    && (('range_to' in value && typeof value.range_to === 'string') || (!('range_to' in value)))
-    && (('currency' in value && typeof value.currency === 'string') || (!('currency' in value)));
+  return richMessageResponseSchema.safeParse(value).success;
 };

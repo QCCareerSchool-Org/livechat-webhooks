@@ -1,9 +1,12 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { Properties } from '../properties.mjs';
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 import type { FieldType } from './fieldType.mjs';
-import { isProperties } from '../properties.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
-import { isFieldType } from './fieldType.mjs';
+import { propertiesSchema } from '../properties.mjs';
+import { fieldTypeSchema } from './fieldType.mjs';
 
 export interface FormRequest extends BaseEventRequest<'form'> {
   properties?: Properties;
@@ -28,26 +31,31 @@ export interface FormResponse extends BaseEventResponse<'form'> {
   deleted?: boolean;
 }
 
+const fieldSchema = z.looseObject({
+  type: fieldTypeSchema,
+  id: z.string(),
+  label: z.string(),
+}) satisfies z.ZodType<Field>;
+
+export const formRequestSchema = createBaseEventRequestSchema('form').extend({
+  properties: propertiesSchema.optional(),
+  form_id: z.string(),
+  fields: z.array(fieldSchema),
+}) satisfies z.ZodType<FormRequest>;
+
+export const formResponseSchema = createBaseEventResponseSchema('form').extend({
+  author_id: z.string(),
+  properties: propertiesSchema.optional(),
+  form_id: z.string(),
+  form_type: z.string().optional(),
+  fields: z.array(fieldSchema),
+  deleted: z.boolean().optional(),
+}) satisfies z.ZodType<FormResponse>;
+
 export const isFormRequest = (value: unknown): value is FormRequest => {
-  return isBaseEventRequest(value, 'form')
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'form_id' in value && typeof value.form_id === 'string'
-    && 'fields' in value && Array.isArray(value.fields) && value.fields.every(isField);
+  return formRequestSchema.safeParse(value).success;
 };
 
 export const isFormResponse = (value: unknown): value is FormResponse => {
-  return isBaseEventResponse(value, 'form')
-    && 'author_id' in value && typeof value.author_id === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'form_id' in value && typeof value.form_id === 'string'
-    && (('form_type' in value && typeof value.form_type === 'string') || (!('form_type' in value)))
-    && 'fields' in value && Array.isArray(value.fields) && value.fields.every(isField)
-    && (('deleted' in value && typeof value.deleted === 'boolean') || (!('deleted' in value)));
-};
-
-const isField = (value: unknown): value is Field => {
-  return typeof value === 'object' && value !== null
-  && 'type' in value && isFieldType(value.type)
-  && 'id' in value && typeof value.id === 'string'
-  && 'label' in value && typeof value.label === 'string';
+  return formResponseSchema.safeParse(value).success;
 };

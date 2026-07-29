@@ -1,7 +1,10 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { Properties } from '../properties.mjs';
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
-import { isProperties } from '../properties.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+import { propertiesSchema } from '../properties.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 
 export interface FileRequest extends BaseEventRequest<'file'> {
   properties?: Properties;
@@ -33,25 +36,31 @@ export interface FileResponse extends BaseEventResponse<'file'> {
   deleted?: boolean;
 }
 
+export const fileRequestSchema = createBaseEventRequestSchema('file').extend({
+  properties: propertiesSchema.optional(),
+  url: z.string(),
+  alternative_text: z.string().optional(),
+}) satisfies z.ZodType<FileRequest>;
+
+export const fileResponseSchema = createBaseEventResponseSchema('file').extend({
+  author_id: z.string(),
+  properties: propertiesSchema.optional(),
+  name: z.string(),
+  url: z.string(),
+  thumbnail_url: z.string().optional(),
+  thumbnail2x_url: z.string().optional(),
+  content_type: z.string(),
+  size: z.string().optional(),
+  width: z.string().optional(),
+  height: z.string().optional(),
+  alternative_text: z.string().optional(),
+  deleted: z.boolean().optional(),
+}) satisfies z.ZodType<FileResponse>;
+
 export const isFileRequest = (value: unknown): value is FileRequest => {
-  return isBaseEventRequest(value, 'file')
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'url' in value && typeof value.url === 'string'
-    && (('alternative_text' in value && typeof value.alternative_text === 'string') || (!('alternative_text' in value)));
+  return fileRequestSchema.safeParse(value).success;
 };
 
 export const isFileResponse = (value: unknown): value is FileResponse => {
-  return isBaseEventResponse(value, 'file')
-    && 'author_id' in value && typeof value.author_id === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'name' in value && typeof value.name === 'string'
-    && 'url' in value && typeof value.url === 'string'
-    && (('thumbnail_url' in value && typeof value.thumbnail_url === 'string') || (!('thumbnail_url' in value)))
-    && (('thumbnail2x_url' in value && typeof value.thumbnail2x_url === 'string') || (!('thumbnail2x_url' in value)))
-    && 'content_type' in value && typeof value.content_type === 'string'
-    && (('size' in value && typeof value.size === 'string') || (!('size' in value)))
-    && (('width' in value && typeof value.width === 'string') || (!('width' in value)))
-    && (('height' in value && typeof value.height === 'string') || (!('height' in value)))
-    && (('alternative_text' in value && typeof value.alternative_text === 'string') || (!('alternative_text' in value)))
-    && (('deleted' in value && typeof value.deleted === 'boolean') || (!('deleted' in value)));
+  return fileResponseSchema.safeParse(value).success;
 };

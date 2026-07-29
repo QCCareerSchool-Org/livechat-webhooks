@@ -1,7 +1,10 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { Properties } from '../properties.mjs';
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
-import { isProperties } from '../properties.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+import { propertiesSchema } from '../properties.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 
 export interface MessageRequest extends BaseEventRequest<'message'> {
   /** Max. raw text size is 16 KB (one UTF-8 char like emoji 😁 can use up to 4 B); to send more, split text into several messages. */
@@ -22,7 +25,7 @@ export interface MessageResponse extends BaseEventResponse<'message'> {
   deleted?: boolean;
 }
 
-type PostBack = {
+interface BasePostBack {
   /** ID of the postback from the rich message event. */
   id: string;
   /** ID of the thread with the rich message event. */
@@ -31,11 +34,13 @@ type PostBack = {
   event_id: string;
   /** Object containing data specific to rich messages with ecommerce template, like product_id. */
   ecommerce?: Ecommerce;
-} & ({
+}
+
+type PostBack = BasePostBack & ({
   /** Should be used together with postback.value (when one of them is present, the other is required). */
-  type: never;
+  type?: never;
   /** Should be used together with postback.type (when one of them is present, the other is required). */
-  value: never;
+  value?: never;
 } | {
   /** Should be used together with postback.value (when one of them is present, the other is required). */
   type: string;
@@ -52,35 +57,48 @@ interface Ecommerce {
   quantity?: number;
 }
 
+const ecommerceSchema = z.looseObject({
+  product_id: z.string().optional(),
+  option_id: z.string().optional(),
+  quantity: z.number().optional(),
+}) satisfies z.ZodType<Ecommerce>;
+
+const basePostBackSchema = z.looseObject({
+  id: z.string(),
+  thread_id: z.string(),
+  event_id: z.string(),
+  ecommerce: ecommerceSchema.optional(),
+}) satisfies z.ZodType<BasePostBack>;
+
+const postBackSchema = z.union([
+  basePostBackSchema.extend({
+    type: z.never().optional(),
+    value: z.never().optional(),
+  }),
+  basePostBackSchema.extend({
+    type: z.string(),
+    value: z.string(),
+  }),
+]) satisfies z.ZodType<PostBack>;
+
+export const messageRequestSchema = createBaseEventRequestSchema('message').extend({
+  text: z.string(),
+  properties: propertiesSchema.optional(),
+  postback: postBackSchema.optional(),
+}) satisfies z.ZodType<MessageRequest>;
+
+export const messageResponseSchema = createBaseEventResponseSchema('message').extend({
+  author_id: z.string(),
+  text: z.string(),
+  properties: propertiesSchema.optional(),
+  postback: postBackSchema.optional(),
+  deleted: z.boolean().optional(),
+}) satisfies z.ZodType<MessageResponse>;
+
 export const isMessageRequest = (value: unknown): value is MessageRequest => {
-  return isBaseEventRequest(value, 'message')
-    && 'text' in value && typeof value.text === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && (('postback' in value && isPostBack(value.postback)) || (!('postback' in value)));
+  return messageRequestSchema.safeParse(value).success;
 };
 
 export const isMessageResponse = (value: unknown): value is MessageResponse => {
-  return isBaseEventResponse(value, 'message')
-    && 'author_id' in value && typeof value.author_id === 'string'
-    && 'text' in value && typeof value.text === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && (('postback' in value && isPostBack(value.postback)) || (!('postback' in value)))
-    && (('deleted' in value && typeof value.deleted === 'boolean') || (!('deleted' in value)));
-};
-
-const isPostBack = (value: unknown): value is PostBack => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && 'thread_id' in value && typeof value.thread_id === 'string'
-    && 'event_id' in value && typeof value.event_id === 'string'
-    && (('ecommerce' in value && isEcommerce(value.ecommerce)) || (!('ecommerce' in value)))
-    && 'type' in value && typeof value.type === 'string'
-    && 'value' in value && typeof value.value === 'string';
-};
-
-const isEcommerce = (value: unknown): value is Ecommerce => {
-  return typeof value === 'object' && value !== null
-    && (('product_id' in value && typeof value.product_id === 'string') || (!('product_id' in value)))
-    && (('option_id' in value && typeof value.option_id === 'string') || (!('option_id' in value)))
-    && (('quantity' in value && typeof value.quantity === 'number') || (!('quantity' in value)));
+  return messageResponseSchema.safeParse(value).success;
 };

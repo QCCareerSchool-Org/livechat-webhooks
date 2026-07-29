@@ -1,9 +1,12 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { Properties } from '../properties.mjs';
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 import type { FieldType } from './fieldType.mjs';
-import { isFieldType } from './fieldType.mjs';
-import { isProperties } from '../properties.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+import { propertiesSchema } from '../properties.mjs';
+import { fieldTypeSchema } from './fieldType.mjs';
 
 export interface FilledFormRequest extends BaseEventRequest<'filled_form'> {
   properties?: Properties;
@@ -33,30 +36,41 @@ export interface FilledFormResponse extends BaseEventResponse<'filled_form'> {
   deleted?: boolean;
 }
 
+const filledAnswerSchema = z.union([
+  z.string(),
+  z.looseObject({
+    id: z.string(),
+    label: z.string(),
+    group_id: z.number(),
+  }),
+]) satisfies z.ZodType<FilledField['answer']>;
+
+const filledFieldSchema = z.looseObject({
+  type: fieldTypeSchema,
+  id: z.string(),
+  label: z.string(),
+  answer: filledAnswerSchema,
+}) satisfies z.ZodType<FilledField>;
+
+export const filledFormRequestSchema = createBaseEventRequestSchema('filled_form').extend({
+  properties: propertiesSchema.optional(),
+  form_id: z.string(),
+  fields: z.array(filledFieldSchema),
+}) satisfies z.ZodType<FilledFormRequest>;
+
+export const filledFormResponseSchema = createBaseEventResponseSchema('filled_form').extend({
+  author_id: z.string(),
+  properties: propertiesSchema.optional(),
+  form_id: z.string(),
+  form_type: z.string().optional(),
+  fields: z.array(filledFieldSchema),
+  deleted: z.boolean().optional(),
+}) satisfies z.ZodType<FilledFormResponse>;
+
 export const isFilledFormRequest = (value: unknown): value is FilledFormRequest => {
-  return isBaseEventRequest(value, 'filled_form')
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'form_id' in value && typeof value.form_id === 'string'
-    && 'fields' in value && Array.isArray(value.fields) && value.fields.every(isField);
+  return filledFormRequestSchema.safeParse(value).success;
 };
 
 export const isFilledFormResponse = (value: unknown): value is FilledFormResponse => {
-  return isBaseEventResponse(value, 'filled_form')
-    && 'author_id' in value && typeof value.author_id === 'string'
-    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
-    && 'form_id' in value && typeof value.form_id === 'string'
-    && (('form_type' in value && typeof value.form_type === 'string') || (!('form_type' in value)))
-    && 'fields' in value && Array.isArray(value.fields) && value.fields.every(isField)
-    && (('deleted' in value && typeof value.deleted === 'boolean') || (!('deleted' in value)));
-};
-
-const isField = (value: unknown): value is FilledField => {
-  return typeof value === 'object' && value !== null
-  && 'type' in value && isFieldType(value.type)
-  && 'id' in value && typeof value.id === 'string'
-  && 'label' in value && typeof value.label === 'string'
-  && 'answer' in value && (typeof value.answer === 'string' || (typeof value.answer === 'object' && value.answer !== null
-    && 'id' in value.answer && typeof value.answer.id === 'string'
-    && 'label' in value.answer && typeof value.answer.label === 'string'
-    && 'group_id' in value.answer && typeof value.answer.group_id === 'number'));
+  return filledFormResponseSchema.safeParse(value).success;
 };

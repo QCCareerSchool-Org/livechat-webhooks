@@ -1,6 +1,5 @@
 import type { Result } from 'generic-result-type';
 import { failure, success } from 'generic-result-type';
-import zod from 'zod';
 
 import { activeCampaignFetch } from '../index.mjs';
 

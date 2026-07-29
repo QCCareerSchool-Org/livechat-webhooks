@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { isProperties } from './properties.mjs';
+import { isProperties, propertiesSchema } from './properties.mjs';
 
 describe('Properties', () => {
 
@@ -11,6 +11,18 @@ describe('Properties', () => {
 
     test('detects invalid Properties', () => {
       expect(isProperties({ property_namespace: { property_name: 3 } })).toBe(false);
+    });
+
+    test('describes invalid Properties', () => {
+      const result = propertiesSchema.safeParse({ property_namespace: { property_name: 3 } });
+
+      expect(result.success).toBe(false);
+
+      if (result.success) {
+        throw new Error('Expected Properties validation to fail');
+      }
+
+      expect(result.error.issues[0]?.path).toEqual([ 'property_namespace', 'property_name' ]);
     });
 
   });

@@ -1,10 +1,9 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 const eventTypes = [ 'file', 'form', 'filled_form', 'message', 'rich_message', 'custom', 'system_message', 'system' ] as const;
 
 export type EventType = typeof eventTypes[number];
-
-export const isEventType = (value: unknown): value is EventType => {
-  return typeof value === 'string' && (eventTypes as readonly string[]).includes(value);
-};
 
 export type Visibility = 'all' | 'agents';
 
@@ -23,18 +22,44 @@ export interface BaseEventResponse<Type extends EventType = EventType> {
   visibility: Visibility;
 }
 
+export const eventTypeSchema = z.enum(eventTypes) satisfies z.ZodType<EventType>;
+
+export const visibilitySchema = z.enum([ 'all', 'agents' ]) satisfies z.ZodType<Visibility>;
+
+export const isEventType = (value: unknown): value is EventType => {
+  return eventTypeSchema.safeParse(value).success;
+};
+
+export const baseEventRequestSchema = z.looseObject({
+  custom_id: z.string().optional(),
+  type: eventTypeSchema,
+  visibility: visibilitySchema.optional(),
+}) satisfies z.ZodType<BaseEventRequest>;
+
+export const baseEventResponseSchema = z.looseObject({
+  id: z.string(),
+  custom_id: z.string().optional(),
+  type: eventTypeSchema,
+  created_at: z.string(),
+  visibility: visibilitySchema,
+}) satisfies z.ZodType<BaseEventResponse>;
+
+export const createBaseEventRequestSchema = <Type extends EventType>(type: Type) => baseEventRequestSchema.extend({
+  type: z.literal(type),
+}) satisfies z.ZodType<BaseEventRequest<Type>>;
+
+export const createBaseEventResponseSchema = <Type extends EventType>(type: Type) => baseEventResponseSchema.extend({
+  type: z.literal(type),
+}) satisfies z.ZodType<BaseEventResponse<Type>>;
+
 export const isBaseEventRequest = <Type extends EventType>(value: unknown, type: Type): value is BaseEventRequest<Type> => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === type
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)));
+  const result = baseEventRequestSchema.safeParse(value);
+
+  return result.success && result.data.type === type;
 };
 
 export const isBaseEventResponse = <Type extends EventType>(value: unknown, type: Type): value is BaseEventResponse<Type> => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === type
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents');
+  const result = baseEventResponseSchema.safeParse(value);
+
+  return result.success && result.data.type === type;
 };

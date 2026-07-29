@@ -1,5 +1,8 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
-import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+import { createBaseEventRequestSchema, createBaseEventResponseSchema } from './base.mjs';
 
 const systemMessageTypes = [
   'agent_added',
@@ -41,7 +44,7 @@ const systemMessageTypes = [
   'transcript_sent',
 ] as const;
 
-type SystemMessageType = typeof systemMessageTypes[number];
+export type SystemMessageType = typeof systemMessageTypes[number];
 
 export interface SystemMessageRequest extends BaseEventRequest<'system_message'> {
   text?: string;
@@ -55,24 +58,26 @@ export interface SystemMessageResponse extends BaseEventResponse<'system_message
   text_vars?: Record<string, unknown>;
 }
 
+export const systemMessageTypeSchema = z.enum(systemMessageTypes) satisfies z.ZodType<SystemMessageType>;
+
+const textVarsSchema = z.record(z.string(), z.unknown()) satisfies z.ZodType<Record<string, unknown>>;
+
+export const systemMessageRequestSchema = createBaseEventRequestSchema('system_message').extend({
+  text: z.string().optional(),
+  system_message_type: systemMessageTypeSchema,
+  text_vars: textVarsSchema.optional(),
+}) satisfies z.ZodType<SystemMessageRequest>;
+
+export const systemMessageResponseSchema = createBaseEventResponseSchema('system_message').extend({
+  text: z.string().optional(),
+  system_message_type: systemMessageTypeSchema,
+  text_vars: textVarsSchema.optional(),
+}) satisfies z.ZodType<SystemMessageResponse>;
+
 export const isSystemMessageRequest = (value: unknown): value is SystemMessageRequest => {
-  return isBaseEventRequest(value, 'system_message')
-    && (('text' in value && typeof value.text === 'string') || (!('text' in value)))
-    && 'system_message_type' in value && isSystemMessageType(value.system_message_type)
-    && (('text_vars' in value && isTextVars(value.text_vars)) || (!('text_vars' in value)));
+  return systemMessageRequestSchema.safeParse(value).success;
 };
 
 export const isSystemMessageResponse = (value: unknown): value is SystemMessageResponse => {
-  return isBaseEventResponse(value, 'system_message')
-    && (('text' in value && typeof value.text === 'string') || (!('text' in value)))
-    && 'system_message_type' in value && isSystemMessageType(value.system_message_type)
-    && (('text_vars' in value && isTextVars(value.text_vars)) || (!('text_vars' in value)));
-};
-
-const isSystemMessageType = (value: unknown): value is SystemMessageType => {
-  return typeof value === 'string' && (systemMessageTypes as readonly string[]).includes(value);
-};
-
-const isTextVars = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return systemMessageResponseSchema.safeParse(value).success;
 };

@@ -1,3 +1,6 @@
+/* eslint-disable camelcase */
+import { z } from 'zod';
+
 interface BaseAgent {
   id: string;
   type: 'agent';
@@ -20,25 +23,30 @@ export interface MyProfile extends BaseAgent {
   permission: string;
 }
 
+const baseAgentSchema = z.looseObject({
+  id: z.string(),
+  type: z.literal('agent'),
+  name: z.string(),
+  email: z.string(),
+  present: z.boolean(),
+  avatar: z.string(),
+}) satisfies z.ZodType<BaseAgent>;
+
+export const agentSchema = baseAgentSchema.extend({
+  events_seen_up_to: z.string(),
+  visibility: z.enum([ 'all', 'agents' ]),
+}) satisfies z.ZodType<Agent>;
+
+export const myProfileSchema = baseAgentSchema.extend({
+  events_seen_up_to: z.string().optional(),
+  routing_status: z.string().optional(),
+  permission: z.string(),
+}) satisfies z.ZodType<MyProfile>;
+
 export const isAgent = (value: unknown): value is Agent => {
-  return isBaseAgent(value)
-    && 'events_seen_up_to' in value && typeof value.events_seen_up_to === 'string'
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents');
+  return agentSchema.safeParse(value).success;
 };
 
 export const isMyProfile = (value: unknown): value is MyProfile => {
-  return isBaseAgent(value)
-    && (('events_seen_up_to' in value && typeof value.events_seen_up_to === 'string') || (!('events_seen_up_to' in value)))
-    && (('routing_status' in value && typeof value.routing_status === 'string') || (!('routing_status' in value)))
-    && 'permission' in value && typeof value.permission === 'string';
-};
-
-const isBaseAgent = (value: unknown): value is BaseAgent => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && 'type' in value && value.type === 'agent'
-    && 'name' in value && typeof value.name === 'string'
-    && 'email' in value && typeof value.email === 'string'
-    && 'present' in value && typeof value.present === 'boolean'
-    && 'avatar' in value && typeof value.avatar === 'string';
+  return myProfileSchema.safeParse(value).success;
 };
