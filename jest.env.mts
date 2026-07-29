@@ -1,1 +1,1 @@
-process.env.MODE = 'testing';
+process.env.NODE_ENV = 'testing';
