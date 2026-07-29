@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
 
-import { isIncomingChat } from '../domain/incomingChat.mjs';
-import { incomingChatInterator } from '../interactors/incomingChatInteractor.mjs';
+import { isIncomingChat } from '#domain/livechat/webhook/incomingChat.mjs';
+import { incomingChatInterator } from '#interactors/incomingChatInteractor.mjs';
 
 export const incomingChatHandler: RequestHandler = async (req, res) => {
   if (!isIncomingChat(req.body)) {

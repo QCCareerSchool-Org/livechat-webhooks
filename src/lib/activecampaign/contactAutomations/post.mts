@@ -1,8 +1,8 @@
 import type { Result } from 'generic-result-type';
 import { failure, success } from 'generic-result-type';
 
-import { stringify } from '#src/lib/json.mjs';
-import { activeCampaignFetch } from '../index.mjs';
+import { activeCampaignFetch } from '#lib/activecampaign/index.mjs';
+import { stringify } from '#lib/json.mjs';
 
 export enum ContactListStatus {
   ACTIVE = 1,

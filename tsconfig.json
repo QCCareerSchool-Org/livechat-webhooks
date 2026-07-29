@@ -42,7 +42,10 @@
 
     "noEmit": true,
     "paths": {
-      "#src/*": [ "./src/*" ],
+      "#interactors/*": [ "./src/interactors/*" ],
+      "#domain/*": [ "./src/domain/*" ],
+      "#handlers/*": [ "./src/handlers/*" ],
+      "#lib/*": [ "./src/lib/*" ],
     }
   },
   "include": ["src"],

@@ -1,7 +1,7 @@
 import type { Result } from 'generic-result-type';
 import { success } from 'generic-result-type';
 
-import type { SchoolName } from '#src/domain/school.mjs';
+import type { SchoolName } from '#domain/school.mjs';
 import { getContactByEmailAddress } from './activecampaign/contact/get.mjs';
 import { putContact } from './activecampaign/contact/put.mjs';
 import { postContact } from './activecampaign/contact/sync/post.mjs';

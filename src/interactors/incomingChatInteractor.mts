@@ -1,22 +1,22 @@
 import type { Result } from 'generic-result-type';
 import { failure, success } from 'generic-result-type';
 
-import type { IncomingChat } from '../domain/incomingChat.mjs';
-import { postContact } from '../lib/activecampaign/contacts/post.mjs';
+import type { IncomingChat } from '#domain/livechat/webhook/incomingChat.mjs';
+import { postContact } from '#lib/activecampaign/contacts/post.mjs';
 
 export const incomingChatInterator = async (incomingChat: IncomingChat): Promise<Result<bigint>> => {
-  const user = incomingChat.users[0];
-  if (!user) {
-    return failure(Error('No user found.'));
+  const customer = incomingChat.payload.chat.users.find(u => u.type === 'customer');
+  if (!customer) {
+    return failure(Error('No customter found.'));
   }
 
-  if (!user.email) {
+  if (!customer.email) {
     return failure(Error('No email address.'));
   }
 
   const postContactResult = await postContact({
-    email: user.email,
-    firstName: user.name ?? '',
+    email: customer.email,
+    firstName: customer.name ?? '',
     lastName: '',
     phone: '',
   });

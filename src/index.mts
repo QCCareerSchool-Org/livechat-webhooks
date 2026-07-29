@@ -4,9 +4,9 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 
-import { authorizationMiddleware } from './handlers/authorizationMiddleware.mjs';
-import { globalErrorHandler } from './handlers/globalErrorHandler.mjs';
-import { incomingChatHandler } from './handlers/incomingChatHandler.mjs';
+import { authorizationMiddleware } from '#handlers/authorizationMiddleware.mjs';
+import { globalErrorHandler } from '#handlers/globalErrorHandler.mjs';
+import { incomingChatHandler } from '#handlers/incomingChatHandler.mjs';
 
 const corsOptions: CorsOptions = {
   allowedHeaders: [ 'content-type', 'authorization' ],

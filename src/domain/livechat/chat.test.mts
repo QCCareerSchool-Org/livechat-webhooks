@@ -1,16 +1,16 @@
 /* eslint-disable camelcase */
-import { isIncomingChat } from './incomingChat.mjs';
+import { isChat } from './chat.mjs';
 
-describe('IncomingChat', () => {
+describe('Chat', () => {
 
-  describe('isIncomingChat', () => {
+  describe('isChat', () => {
 
-    test('detects a valid IncomingChat', () => {
-      expect(isIncomingChat(validPayload)).toBe(true);
+    test('detects a valid payload', () => {
+      expect(isChat(validPayload)).toBe(true);
     });
 
-    test('detects an invalid IncomingChat', () => {
-      expect(isIncomingChat({ foo: 3 })).toBe(false);
+    test('detects an invalid payload', () => {
+      expect(isChat({ foo: 3 })).toBe(false);
     });
 
   });
