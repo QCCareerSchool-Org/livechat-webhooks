@@ -15,6 +15,8 @@ import { isSystemResponse } from './system.mjs';
 import type { SystemMessageRequest, SystemMessageResponse } from './systemMessage.mjs';
 import { isSystemMessageRequest, isSystemMessageResponse } from './systemMessage.mjs';
 
+export type { BaseEventRequest, BaseEventResponse, EventType, Visibility } from './base.mjs';
+export { isBaseEventRequest, isBaseEventResponse, isEventType } from './base.mjs';
 export type { CustomRequest, CustomResponse } from './custom.mjs';
 export { isCustomRequest, isCustomResponse } from './custom.mjs';
 export type { FileRequest, FileResponse } from './file.mjs';

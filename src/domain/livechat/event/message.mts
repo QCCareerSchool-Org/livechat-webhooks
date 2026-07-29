@@ -1,10 +1,9 @@
 import type { Properties } from '../properties.mjs';
+import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
 import { isProperties } from '../properties.mjs';
+import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
 
-export interface MessageRequest {
-  custom_id?: string;
-  type: 'message';
-  visibility?: 'all' | 'agents';
+export interface MessageRequest extends BaseEventRequest<'message'> {
   /** Max. raw text size is 16 KB (one UTF-8 char like emoji 😁 can use up to 4 B); to send more, split text into several messages. */
   text: string;
   properties?: Properties;
@@ -12,14 +11,8 @@ export interface MessageRequest {
   postback?: PostBack;
 }
 
-export interface MessageResponse {
-  id?: string;
-  custom_id: string;
-  /** ISO date string */
-  created_at: string;
-  type: 'message';
+export interface MessageResponse extends BaseEventResponse<'message'> {
   author_id: string;
-  visibility?: 'all' | 'agents';
   /** Max. raw text size is 16 KB (one UTF-8 char like emoji 😁 can use up to 4 B); to send more, split text into several messages. */
   text: string;
   properties?: Properties;
@@ -60,23 +53,15 @@ interface Ecommerce {
 }
 
 export const isMessageRequest = (value: unknown): value is MessageRequest => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'message'
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)))
+  return isBaseEventRequest(value, 'message')
     && 'text' in value && typeof value.text === 'string'
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && (('postback' in value && isPostBack(value.postback)) || (!('postback' in value)));
 };
 
 export const isMessageResponse = (value: unknown): value is MessageResponse => {
-  return typeof value === 'object' && value !== null
-    && (('id' in value && typeof value.id === 'string') || (!('id' in value)))
-    && 'custom_id' in value && typeof value.custom_id === 'string'
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'type' in value && value.type === 'message'
+  return isBaseEventResponse(value, 'message')
     && 'author_id' in value && typeof value.author_id === 'string'
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)))
     && 'text' in value && typeof value.text === 'string'
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && (('postback' in value && isPostBack(value.postback)) || (!('postback' in value)))

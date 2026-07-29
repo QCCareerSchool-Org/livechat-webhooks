@@ -1,3 +1,6 @@
+import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
+import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
+
 const systemMessageTypes = [
   'agent_added',
   'agent_joined',
@@ -40,46 +43,29 @@ const systemMessageTypes = [
 
 type SystemMessageType = typeof systemMessageTypes[number];
 
-export interface SystemMessageRequest {
-  custom_id?: string;
-  type: 'system_message';
+export interface SystemMessageRequest extends BaseEventRequest<'system_message'> {
   text?: string;
   system_message_type: SystemMessageType;
-  visibility?: 'all' | 'agents';
   text_vars?: Record<string, unknown>;
 }
 
-export interface SystemMessageResponse {
-  id: string;
-  custom_id?: string;
-  type: 'system_message';
-  /** ISO date string */
-  created_at: string;
+export interface SystemMessageResponse extends BaseEventResponse<'system_message'> {
   text?: string;
   system_message_type: SystemMessageType;
-  visibility: 'all' | 'agents';
   text_vars?: Record<string, unknown>;
 }
 
 export const isSystemMessageRequest = (value: unknown): value is SystemMessageRequest => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'system_message'
+  return isBaseEventRequest(value, 'system_message')
     && (('text' in value && typeof value.text === 'string') || (!('text' in value)))
     && 'system_message_type' in value && isSystemMessageType(value.system_message_type)
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)))
     && (('text_vars' in value && isTextVars(value.text_vars)) || (!('text_vars' in value)));
 };
 
 export const isSystemMessageResponse = (value: unknown): value is SystemMessageResponse => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'system_message'
-    && 'created_at' in value && typeof value.created_at === 'string'
+  return isBaseEventResponse(value, 'system_message')
     && (('text' in value && typeof value.text === 'string') || (!('text' in value)))
     && 'system_message_type' in value && isSystemMessageType(value.system_message_type)
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')
     && (('text_vars' in value && isTextVars(value.text_vars)) || (!('text_vars' in value)));
 };
 

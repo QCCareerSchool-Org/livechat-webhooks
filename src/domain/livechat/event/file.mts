@@ -1,10 +1,9 @@
 import type { Properties } from '../properties.mjs';
+import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
 import { isProperties } from '../properties.mjs';
+import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
 
-export interface FileRequest {
-  custom_id?: string;
-  type: 'file';
-  visibility?: 'all' | 'agents';
+export interface FileRequest extends BaseEventRequest<'file'> {
   properties?: Properties;
   /** Has to point to the LiveChat CDN. It's recommended to use the URL returned by upload_file */
   url: string;
@@ -12,14 +11,8 @@ export interface FileRequest {
   alternative_text?: string;
 }
 
-export interface FileResponse {
-  id: string;
-  custom_id?: string;
-  /** ISO date string */
-  created_at: string;
-  type: 'file';
+export interface FileResponse extends BaseEventResponse<'file'> {
   author_id: string;
-  visibility: 'all' | 'agents';
   properties?: Properties;
   name: string;
   url: string;
@@ -41,22 +34,15 @@ export interface FileResponse {
 }
 
 export const isFileRequest = (value: unknown): value is FileRequest => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'file'
-    && (('visibilty' in value && (value.visibilty === 'all' || value.visibilty === 'agents')) || (!('visibilty' in value)))
+  return isBaseEventRequest(value, 'file')
+    && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'url' in value && typeof value.url === 'string'
     && (('alternative_text' in value && typeof value.alternative_text === 'string') || (!('alternative_text' in value)));
 };
 
 export const isFileResponse = (value: unknown): value is FileResponse => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'type' in value && value.type === 'file'
+  return isBaseEventResponse(value, 'file')
     && 'author_id' in value && typeof value.author_id === 'string'
-    && 'visibilty' in value && (value.visibilty === 'all' || value.visibilty === 'agents')
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'name' in value && typeof value.name === 'string'
     && 'url' in value && typeof value.url === 'string'

@@ -1,12 +1,11 @@
 import type { Properties } from '../properties.mjs';
+import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
 import type { FieldType } from './fieldType.mjs';
 import { isFieldType } from './fieldType.mjs';
 import { isProperties } from '../properties.mjs';
+import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
 
-export interface FilledFormRequest {
-  custom_id?: string;
-  type: 'filled_form';
-  visibility?: 'all' | 'agents';
+export interface FilledFormRequest extends BaseEventRequest<'filled_form'> {
   properties?: Properties;
   form_id: string;
   fields: FilledField[];
@@ -23,14 +22,8 @@ interface FilledField {
   };
 }
 
-export interface FilledFormResponse {
-  id: string;
-  custom_id?: string;
-  /** ISO date string */
-  created_at: string;
-  type: 'filled_form';
+export interface FilledFormResponse extends BaseEventResponse<'filled_form'> {
   author_id: string;
-  visibility: 'all' | 'agents';
   properties?: Properties;
   form_id: string;
   /** he most popular form types include: prechat, postchat, ask_for_email, but those aren’t the only possible options. If you don’t see this field in a chat, it means that chat had been started before we introduced this field (see Changelog). */
@@ -41,23 +34,15 @@ export interface FilledFormResponse {
 }
 
 export const isFilledFormRequest = (value: unknown): value is FilledFormRequest => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'filled_form'
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)))
+  return isBaseEventRequest(value, 'filled_form')
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'form_id' in value && typeof value.form_id === 'string'
     && 'fields' in value && Array.isArray(value.fields) && value.fields.every(isField);
 };
 
 export const isFilledFormResponse = (value: unknown): value is FilledFormResponse => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'type' in value && value.type === 'filled_form'
+  return isBaseEventResponse(value, 'filled_form')
     && 'author_id' in value && typeof value.author_id === 'string'
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'form_id' in value && typeof value.form_id === 'string'
     && (('form_type' in value && typeof value.form_type === 'string') || (!('form_type' in value)))

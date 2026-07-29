@@ -1,3 +1,6 @@
+import type { BaseEventResponse } from './base.mjs';
+import { isBaseEventResponse } from './base.mjs';
+
 const aiAgentSystemSubtypes = [
   'custom_skill_awaiting_feedback',
   'custom_skill_completed',
@@ -20,15 +23,9 @@ const messagingSystemSubtypes = [ 'summary' ] as const;
 
 type MessagingSystemSubtype = typeof messagingSystemSubtypes[number];
 
-interface SystemResponseBase {
-  id: string;
-  custom_id?: string;
-  type: 'system';
+interface SystemResponseBase extends BaseEventResponse<'system'> {
   version: number;
   details: string;
-  /** ISO date string */
-  created_at: string;
-  visibility: 'all' | 'agents';
 }
 
 type SystemActivity = {
@@ -45,15 +42,10 @@ type SystemActivity = {
 export type SystemResponse = SystemResponseBase & SystemActivity;
 
 export const isSystemResponse = (value: unknown): value is SystemResponse => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'system'
+  return isBaseEventResponse(value, 'system')
     && isSystemActivity(value)
     && 'version' in value && typeof value.version === 'number'
-    && 'details' in value && typeof value.details === 'string'
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents');
+    && 'details' in value && typeof value.details === 'string';
 };
 
 const isSystemActivity = (value: unknown): value is SystemActivity => {

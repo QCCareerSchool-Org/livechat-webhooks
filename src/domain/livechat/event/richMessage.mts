@@ -1,23 +1,16 @@
 import type { Properties } from '../properties.mjs';
+import type { BaseEventRequest, BaseEventResponse } from './base.mjs';
 import { isProperties } from '../properties.mjs';
+import { isBaseEventRequest, isBaseEventResponse } from './base.mjs';
 
-export interface RichMessageRequest {
-  custom_id?: string;
-  type: 'rich_message';
-  visibility?: 'all' | 'agents';
+export interface RichMessageRequest extends BaseEventRequest<'rich_message'> {
   properties?: Properties;
   template_id: TemplateId;
   elements?: Element<RequestEcommerce>[];
 }
 
-export interface RichMessageResponse {
-  id: string;
-  custom_id?: string;
-  /** ISO date string */
-  created_at: string;
-  type: 'rich_message';
+export interface RichMessageResponse extends BaseEventResponse<'rich_message'> {
   author_id: string;
-  visibility: 'all' | 'agents';
   properties?: Properties;
   template_id: TemplateId;
   elements?: Element[];
@@ -93,23 +86,15 @@ interface Addon {
 }
 
 export const isRichMessageRequest = (value: unknown): value is RichMessageRequest => {
-  return typeof value === 'object' && value !== null
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'type' in value && value.type === 'rich_message'
-    && (('visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')) || (!('visibility' in value)))
+  return isBaseEventRequest(value, 'rich_message')
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'template_id' in value && isTemplateId(value.template_id)
     && (('elements' in value && Array.isArray(value.elements) && value.elements.every(isRequestElement)) || (!('elements' in value)));
 };
 
 export const isRichMessageResponse = (value: unknown): value is RichMessageResponse => {
-  return typeof value === 'object' && value !== null
-    && 'id' in value && typeof value.id === 'string'
-    && (('custom_id' in value && typeof value.custom_id === 'string') || (!('custom_id' in value)))
-    && 'created_at' in value && typeof value.created_at === 'string'
-    && 'type' in value && value.type === 'rich_message'
+  return isBaseEventResponse(value, 'rich_message')
     && 'author_id' in value && typeof value.author_id === 'string'
-    && 'visibility' in value && (value.visibility === 'all' || value.visibility === 'agents')
     && (('properties' in value && isProperties(value.properties)) || (!('properties' in value)))
     && 'template_id' in value && isTemplateId(value.template_id)
     && (('elements' in value && Array.isArray(value.elements) && value.elements.every(isElement)) || (!('elements' in value)));
