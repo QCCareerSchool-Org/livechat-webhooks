@@ -24,7 +24,7 @@ const config: JestConfig = {
     '^#lib/(.*)\\.(js|mjs|cjs)$': '<rootDir>/src/lib/$1',
   },
   setupFiles: [
-    // 'dotenv/config',
+    'dotenv/config',
     '<rootDir>/jest.env.mts',
   ],
   collectCoverage: true,

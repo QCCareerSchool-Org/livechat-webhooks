@@ -42,9 +42,9 @@
 
     "noEmit": true,
     "paths": {
-      "#interactors/*": [ "./src/interactors/*" ],
       "#domain/*": [ "./src/domain/*" ],
       "#handlers/*": [ "./src/handlers/*" ],
+      "#interactors/*": [ "./src/interactors/*" ],
       "#lib/*": [ "./src/lib/*" ],
     }
   },

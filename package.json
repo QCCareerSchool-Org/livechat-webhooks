@@ -7,8 +7,26 @@
   "type": "commonjs",
   "main": "index.js",
   "private": "true",
+  "imports": {
+    "#domain/*": {
+      "types": "./src/domain/*",
+      "default": "./dist/domain/*"
+    },
+    "#handlers/*": {
+      "types": "./src/handlers/*",
+      "default": "./dist/handlers/*"
+    },
+    "#interactors/*": {
+      "types": "./src/interactors/*",
+      "default": "./dist/interactors/*"
+    },
+    "#lib/*": {
+      "types": "./src/lib/*",
+      "default": "./dist/lib/*"
+    }
+  },
   "scripts": {
-    "start": "node dist/index.mjs",
+    "start": "node --env-file=.env dist/index.mjs",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint",
     "test": "jest --verbose"
@@ -25,6 +43,7 @@
     "@types/helmet": "^0.0.48",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.13.3",
+    "dotenv": "^17.4.2",
     "eslint": "^9.39.5",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
