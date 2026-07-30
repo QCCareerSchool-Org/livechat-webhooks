@@ -3,6 +3,7 @@ import { failure, success } from 'generic-result-type';
 
 import type { IncomingChat } from '#domain/livechat/webhook/incomingChat.mjs';
 import { postContact } from '#lib/activecampaign/contacts/post.mjs';
+import { parseName } from '#lib/parseName.mjs';
 
 export const incomingChatInterator = async (incomingChat: IncomingChat): Promise<Result<bigint>> => {
   const customer = incomingChat.payload.chat.users.find(u => u.type === 'customer');
@@ -14,10 +15,12 @@ export const incomingChatInterator = async (incomingChat: IncomingChat): Promise
     return failure(Error('No email address.'));
   }
 
+  const { firstName, lastName } = parseName(customer.name ?? '');
+
   const postContactResult = await postContact({
     email: customer.email,
-    firstName: customer.name ?? '',
-    lastName: '',
+    firstName,
+    lastName,
     phone: '',
   });
 

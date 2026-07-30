@@ -21,6 +21,7 @@ const config: JestConfig = {
     '^(\\.{1,2}/.*)\\.(js|mjs|cjs)$': '$1',
     '^#src/(.*)\\.(js|mjs|cjs)$': '<rootDir>/src/$1',
     '^#test/(.*)\\.(js|mjs|cjs)$': '<rootDir>/__test__/$1',
+    '^#lib/(.*)\\.(js|mjs|cjs)$': '<rootDir>/src/lib/$1',
   },
   setupFiles: [
     // 'dotenv/config',
