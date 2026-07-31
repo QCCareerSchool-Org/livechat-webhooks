@@ -35,6 +35,8 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 
+app.use(req => console.log(req.body, req.headers));
+
 app.use(getAuthorizationMiddleware(hmacSignatureHeaderName, hmacSecretKey));
 
 app.post('/incomingChat', incomingChatHandler);
