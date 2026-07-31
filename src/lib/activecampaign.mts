@@ -183,6 +183,8 @@ const smsListIds: Partial<Record<SchoolName, { [key: string]: bigint; default: b
 const sourceTags = {
   'Meta': 27n,
   'Course Compare': 28n,
+  'OpenAI': 82n,
+  'Chat': 83n,
 } as const;
 
 type Source = keyof typeof sourceTags;

@@ -15,7 +15,7 @@ describe('IncomingChat', () => {
     });
 
     test('describes an invalid IncomingChat field', () => {
-      const result = incomingChatSchema.safeParse({ ...validPayload, organization_id: 3 });
+      const result = incomingChatSchema.safeParse({ ...realPayload, organization_id: 3 });
 
       expect(result.success).toBe(false);
 
@@ -146,33 +146,4 @@ const realPayload: IncomingChat = {
     },
   },
   additional_data: {},
-};
-
-const validPayload = {
-  webhook_id: '<webhook_id>',
-  secret_key: '<secret_key>',
-  action: 'incoming_chat',
-  organization_id: '390e44e6-f1e6-0368c-z6ddb-74g14508c2ex',
-  payload: {
-    chat: {
-      id: 'PJ0MRSHTDG',
-      users: [],
-      is_followed: false,
-      thread: {
-        id: 'QA37PVJ75B',
-        created_at: '2020-05-12T11:42:47.383000Z',
-        active: false,
-        user_ids: [],
-        events: [],
-      },
-    },
-  },
-  additional_data: {
-    chat_properties: { // optional
-      // chat properties
-    },
-    chat_presence_user_ids: [ // optional
-      // User IDs
-    ],
-  },
 };
