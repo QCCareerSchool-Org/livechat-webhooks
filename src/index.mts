@@ -37,7 +37,7 @@ app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 
 app.use(getAuthorizationMiddleware(hmacSignatureHeaderName, hmacSecretKey));
 
-app.post('/incoming-chat', incomingChatHandler);
+app.post('/incomingChat', incomingChatHandler);
 
 app.use(globalErrorHandler);
 
