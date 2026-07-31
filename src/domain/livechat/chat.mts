@@ -15,7 +15,7 @@ interface BaseChat {
   users: User[];
   properties?: Properties;
   access?: Access;
-  is_followed: boolean;
+  is_followed?: boolean;
 }
 
 export type Chat = BaseChat & ({
@@ -31,7 +31,7 @@ const baseChatSchema = z.looseObject({
   users: z.array(userSchema),
   properties: propertiesSchema.optional(),
   access: accessSchema.optional(),
-  is_followed: z.boolean(),
+  is_followed: z.boolean().optional(),
 }) satisfies z.ZodType<BaseChat>;
 
 export const chatSchema = z.union([

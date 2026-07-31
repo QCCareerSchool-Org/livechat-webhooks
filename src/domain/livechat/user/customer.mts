@@ -10,6 +10,8 @@ export interface Customer {
   avatar?: string;
   phone_number?: string;
   visit?: Visit;
+  last_visit?: Visit;
+  last_seen_timestamp?: number;
   session_fields?: Record<string, string>[];
   statistics?: Statistics;
   __priv_lc2_customer_id?: string;
@@ -66,10 +68,11 @@ interface Statistics {
   chats_count: number;
   threads_count: number;
   visits_count: number;
-  tickets_count: number;
+  tickets_count?: number;
   page_views_count?: number;
   greetings_shown_count?: number;
   greetings_accepted_count?: number;
+  greetings_converted_count?: number;
 }
 
 interface Ticket {
@@ -176,7 +179,7 @@ const statisticsSchema = z.looseObject({
   chats_count: z.number(),
   threads_count: z.number(),
   visits_count: z.number(),
-  tickets_count: z.number(),
+  tickets_count: z.number().optional(),
   page_views_count: z.number().optional(),
   greetings_shown_count: z.number().optional(),
   greetings_accepted_count: z.number().optional(),
@@ -267,6 +270,8 @@ export const customerSchema = z.looseObject({
   avatar: z.string().optional(),
   phone_number: z.string().optional(),
   visit: visitSchema.optional(),
+  last_visit: visitSchema.optional(),
+  last_seen_timestamp: z.number().optional(),
   session_fields: z.array(sessionFieldSchema).optional(),
   statistics: statisticsSchema.optional(),
   __priv_lc2_customer_id: z.string().optional(),

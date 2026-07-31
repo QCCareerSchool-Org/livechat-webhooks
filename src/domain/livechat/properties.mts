@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
-export type Properties = Record<string, Record<string, string>>;
+export type Properties = Record<string, Record<string, string | number | boolean>>;
 
 export const propertiesSchema = z.record(
   z.string(),
-  z.record(z.string(), z.string()),
+  z.record(z.string(), z.union([ z.string(), z.number(), z.boolean() ])),
 ) satisfies z.ZodType<Properties>;
 
 export const isProperties = (value: unknown): value is Properties => {

@@ -7,6 +7,7 @@ import type { EventResponse } from './event/index.mjs';
 import { eventResponseSchema } from './event/index.mjs';
 import type { Properties } from './properties.mjs';
 import { propertiesSchema } from './properties.mjs';
+import { type Queue, queueSchema } from './queue.mjs';
 
 export interface Thread {
   id: string;
@@ -19,6 +20,7 @@ export interface Thread {
   access?: Access;
   tags?: string[];
   previous_thread_id?: string;
+  queue?: Queue;
 }
 
 export const threadSchema = z.looseObject({
@@ -31,6 +33,7 @@ export const threadSchema = z.looseObject({
   access: accessSchema.optional(),
   tags: z.array(z.string()).optional(),
   previous_thread_id: z.string().optional(),
+  queue: queueSchema.optional(),
 }) satisfies z.ZodType<Thread>;
 
 export const isThread = (value: unknown): value is Thread => {
