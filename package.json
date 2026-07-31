@@ -54,6 +54,7 @@
     "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
+    "@vercel/config": "^0.5.5",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
