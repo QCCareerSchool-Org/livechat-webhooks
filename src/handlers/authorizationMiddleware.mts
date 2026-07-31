@@ -2,7 +2,7 @@ import type { RequestHandler } from 'express';
 import { z } from 'zod';
 
 interface Body {
-  secretKey: string;
+  secret_key: string;
 }
 
 export const getAuthorizationMiddleware = (secretKey: string): RequestHandler => (req, res, next) => {
@@ -17,7 +17,7 @@ export const getAuthorizationMiddleware = (secretKey: string): RequestHandler =>
     return;
   }
 
-  if (bodyResult.data.secretKey !== secretKey) {
+  if (bodyResult.data.secret_key !== secretKey) {
     res.status(403).send({ message: 'Invalid key' });
   }
 
@@ -25,5 +25,6 @@ export const getAuthorizationMiddleware = (secretKey: string): RequestHandler =>
 };
 
 const schema = z.looseObject({
-  secretKey: z.string().nonempty(),
+  // eslint-disable-next-line camelcase
+  secret_key: z.string().nonempty(),
 }) satisfies z.ZodType<Body>;
