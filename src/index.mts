@@ -18,14 +18,9 @@ declare module 'node:http' {
   }
 }
 
-const hmacSignatureHeaderName = process.env.HMAC_SIGNATURE_HEADER_NAME;
-if (!hmacSignatureHeaderName) {
-  throw Error('Environment variable HMAC_SIGNATURE_HEADER_NAME not found.');
-}
-
-const hmacSecretKey = process.env.HMAC_SECRET_KEY;
-if (!hmacSecretKey) {
-  throw Error('Environment variable HMAC_SECRET_KEY not found.');
+const secretKey = process.env.SECRET_KEY;
+if (!secretKey) {
+  throw Error('Environment variable SECRET_KEY not found.');
 }
 
 const app = express();
@@ -35,9 +30,7 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf; } }));
 
-app.use(req => console.log(req.body, req.headers));
-
-app.use(getAuthorizationMiddleware(hmacSignatureHeaderName, hmacSecretKey));
+app.use(getAuthorizationMiddleware(secretKey));
 
 app.post('/incomingChat', incomingChatHandler);
 
