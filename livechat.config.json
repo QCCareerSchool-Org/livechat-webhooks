@@ -1,0 +1,17 @@
+{
+    "id": "iWksqqEDR",
+    "name": "Webhooks",
+    "product": "livechat",
+    "blocks": {
+        "authorization": {
+            "clientId": "347b2227076559fad34fadaf598c232e",
+            "type": "server_side_app",
+            "redirectUri": "http://localhost"
+        },
+        "repository": {
+            "provider": "github",
+            "name": "QCCareerSchool-Org/livechat-webhooks",
+            "branch": "main"
+        }
+    }
+}
