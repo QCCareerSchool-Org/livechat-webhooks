@@ -77,12 +77,13 @@ const getSchool = (customer: Customer): SchoolName | undefined => {
     return;
   }
 
-  if (!('school' in customer.session_fields)) {
+  const school = customer.session_fields.find(s => 'school' in s)?.school;
+  if (!school) {
     return;
   }
 
-  if (isSchoolName(customer.session_fields.school)) {
-    return customer.session_fields.school;
+  if (isSchoolName(school)) {
+    return school;
   }
 };
 
