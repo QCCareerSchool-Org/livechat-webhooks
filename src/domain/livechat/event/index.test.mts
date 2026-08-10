@@ -116,6 +116,37 @@ describe('Event', () => {
       })).toBe(false);
     });
 
+    test.each([
+      {
+        field: {
+          type: 'checkbox',
+          id: 'checkbox-id',
+          label: 'Email Opt-In',
+          answers: [ { id: '0', label: 'Send me occasional emails' } ],
+        },
+        shape: 'answers',
+      },
+      {
+        field: {
+          type: 'checkbox',
+          id: 'checkbox-id',
+          label: 'Email Opt-In',
+          options: [ { id: 0, value: 'Send me occasional emails' } ],
+        },
+        shape: 'options',
+      },
+    ])('detects a valid checkbox response using $shape', ({ field }) => {
+      expect(isEventResponse({
+        id: 'event-id',
+        type: 'filled_form',
+        created_at: '2020-05-12T11:42:47.383000Z',
+        visibility: 'all',
+        author_id: 'author-id',
+        form_id: 'form-id',
+        fields: [ field ],
+      })).toBe(true);
+    });
+
   });
 
   test('describes an invalid nested event field', () => {

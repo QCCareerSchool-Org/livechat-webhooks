@@ -51,7 +51,7 @@ const baseAgent = {
 
 const validAgent = {
   ...baseAgent,
-  events_seen_up_to: '2020-05-12T12:31:46.999999Z',
+  // events_seen_up_to: '2020-05-12T12:31:46.999999Z',
   visibility: 'all',
 };
 
