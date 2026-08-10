@@ -32,6 +32,8 @@ app.use(express.json());
 
 app.use(getAuthorizationMiddleware(secretKey));
 
+app.use(req => console.log(req.body));
+
 app.post('/incomingChat', incomingChatHandler);
 
 app.use(globalErrorHandler);
