@@ -90,15 +90,15 @@ const getSchool = (customer: Customer): SchoolName | undefined => {
 const getAutomationIds = (schoolName: SchoolName): { requiredIds: bigint[]; optionalIds: bigint[] } => {
   switch (schoolName) {
     case 'QC Design School':
-      return { requiredIds: [], optionalIds: [] };
+      return { requiredIds: [ 33n ], optionalIds: [ 28n ] };
     case 'QC Event School':
-      return { requiredIds: [], optionalIds: [] };
+      return { requiredIds: [ 32n ], optionalIds: [ 25n ] };
     case 'QC Makeup Academy':
-      return { requiredIds: [], optionalIds: [] };
+      return { requiredIds: [ 48n ], optionalIds: [ 35n ] };
     case 'QC Pet Studies':
-      return { requiredIds: [], optionalIds: [] };
+      return { requiredIds: [ 55n ], optionalIds: [ 2n ] };
     case 'QC Wellness Studies':
-      return { requiredIds: [], optionalIds: [] };
+      return { requiredIds: [ 61n ], optionalIds: [ 58n ] };
     default:
       return { requiredIds: [], optionalIds: [] };
   }
