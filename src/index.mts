@@ -12,12 +12,6 @@ const corsOptions: CorsOptions = {
   allowedHeaders: [ 'content-type', 'authorization' ],
 };
 
-declare module 'node:http' {
-  interface IncomingMessage {
-    rawBody?: Buffer;
-  }
-}
-
 const secretKey = process.env.SECRET_KEY;
 if (!secretKey) {
   throw Error('Environment variable SECRET_KEY not found.');
@@ -32,7 +26,7 @@ app.use(express.json());
 
 app.use(req => console.log(req.body));
 
-app.use(getAuthorizationMiddleware(secretKey));
+// app.use(getAuthorizationMiddleware(secretKey));
 
 app.post('/incomingChat', incomingChatHandler);
 

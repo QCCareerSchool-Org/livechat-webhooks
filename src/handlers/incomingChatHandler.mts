@@ -6,6 +6,7 @@ import { incomingChatInterator } from '#interactors/incomingChatInteractor.mjs';
 export const incomingChatHandler: RequestHandler = async (req, res) => {
   const parseResult = incomingChatSchema.safeParse(req.body);
   if (!parseResult.success) {
+    console.error(parseResult.error.issues);
     res.status(400).send(parseResult.error.issues);
     return;
   }
