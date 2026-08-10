@@ -64,12 +64,12 @@ const getEmailOptIn = (chat: Chat) => {
     return false;
   }
 
-  const optInField = filledForm.fields.find(f => f.type === 'checkbox' && f.label === 'opt_in');
+  const optInField = filledForm.fields.find(f => f.type === 'checkbox' && f.label === 'Email Opt-In');
   if (!optInField) {
     return false;
   }
 
-  return 'answer' in optInField && optInField.answer === 'yes';
+  return 'options' in optInField && optInField.options.findIndex(o => o.id === 0) !== -1;
 };
 
 const getSchool = (customer: Customer): SchoolName | undefined => {
