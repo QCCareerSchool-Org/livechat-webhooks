@@ -3,6 +3,7 @@ import type { CorsOptions } from 'cors';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { inspect } from 'node:util';
 
 import { getAuthorizationMiddleware } from '#handlers/authorizationMiddleware.mjs';
 import { globalErrorHandler } from '#handlers/globalErrorHandler.mjs';
@@ -25,11 +26,11 @@ app.use(compression());
 app.use(express.json());
 
 app.use((req, _res, next) => {
-  console.log('incoming request', req.method, req.path, req.body);
+  console.log('incoming request', req.method, req.path, inspect(req.body, false, 10));
   next();
 });
 
-// app.use(getAuthorizationMiddleware(secretKey));
+app.use(getAuthorizationMiddleware(secretKey));
 
 app.post('/incomingChat', incomingChatHandler);
 
