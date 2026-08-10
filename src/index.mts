@@ -24,7 +24,10 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
-app.use(req => console.log(req.body));
+app.use((req, _res, next) => {
+  console.log('incoming request', req.method, req.path, req.body);
+  next();
+});
 
 // app.use(getAuthorizationMiddleware(secretKey));
 
