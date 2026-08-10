@@ -30,9 +30,9 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
-app.use(getAuthorizationMiddleware(secretKey));
-
 app.use(req => console.log(req.body));
+
+app.use(getAuthorizationMiddleware(secretKey));
 
 app.post('/incomingChat', incomingChatHandler);
 
