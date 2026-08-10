@@ -12,7 +12,7 @@ interface BaseAgent {
 
 export interface Agent extends BaseAgent {
   /** RFC 3339 date string */
-  events_seen_up_to: string;
+  events_seen_up_to?: string;
   visibility: 'all' | 'agents';
 }
 
@@ -33,7 +33,7 @@ const baseAgentSchema = z.looseObject({
 }) satisfies z.ZodType<BaseAgent>;
 
 export const agentSchema = baseAgentSchema.extend({
-  events_seen_up_to: z.string(),
+  events_seen_up_to: z.string().optional(),
   visibility: z.enum([ 'all', 'agents' ]),
 }) satisfies z.ZodType<Agent>;
 
