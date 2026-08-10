@@ -8,17 +8,16 @@ interface BaseAgent {
   email: string;
   present: boolean;
   avatar: string;
+  /** RFC 3339 date string */
+  events_seen_up_to?: string;
+  last_seen_timestamp?: number;
 }
 
 export interface Agent extends BaseAgent {
-  /** RFC 3339 date string */
-  events_seen_up_to?: string;
   visibility: 'all' | 'agents';
 }
 
 export interface MyProfile extends BaseAgent {
-  /** RFC 3339 date string */
-  events_seen_up_to?: string;
   routing_status?: string;
   permission: string;
 }
@@ -30,15 +29,15 @@ const baseAgentSchema = z.looseObject({
   email: z.string(),
   present: z.boolean(),
   avatar: z.string(),
+  events_seen_up_to: z.string().optional(),
+  last_seen_timestamp: z.number().optional(),
 }) satisfies z.ZodType<BaseAgent>;
 
 export const agentSchema = baseAgentSchema.extend({
-  events_seen_up_to: z.string().optional(),
   visibility: z.enum([ 'all', 'agents' ]),
 }) satisfies z.ZodType<Agent>;
 
 export const myProfileSchema = baseAgentSchema.extend({
-  events_seen_up_to: z.string().optional(),
   routing_status: z.string().optional(),
   permission: z.string(),
 }) satisfies z.ZodType<MyProfile>;

@@ -58,7 +58,7 @@ interface CheckboxOption {
 
 interface CheckboxOptionsFilledField extends FilledField {
   type: 'checkbox';
-  options: CheckboxOption[];
+  options?: CheckboxOption[];
 }
 
 type FilledFormField = TextFilledField
@@ -128,7 +128,7 @@ const checkboxOptionsFilledFieldSchema = z.looseObject({
   options: z.array(z.looseObject({
     id: z.union([ z.string(), z.number() ]),
     value: z.string(),
-  })),
+  })).optional(),
 }) satisfies z.ZodType<CheckboxOptionsFilledField>;
 
 const filledFieldSchema = z.union([
