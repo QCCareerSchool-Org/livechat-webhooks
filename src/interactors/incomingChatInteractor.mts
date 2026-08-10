@@ -69,7 +69,7 @@ const getEmailOptIn = (chat: Chat) => {
     return false;
   }
 
-  return 'options' in optInField && optInField.options.findIndex(o => o.id === 0) !== -1;
+  return 'options' in optInField && optInField.options?.findIndex(o => o.id === 0) !== -1;
 };
 
 const getSchool = (customer: Customer): SchoolName | undefined => {
