@@ -3,9 +3,9 @@ import type { CorsOptions } from 'cors';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import { inspect } from 'node:util';
 
 import { getAuthorizationMiddleware } from '#handlers/authorizationMiddleware.mjs';
+import { getRequestLogMiddleware } from '#handlers/getRequestLogMiddleware.mjs';
 import { globalErrorHandler } from '#handlers/globalErrorHandler.mjs';
 import { incomingChatHandler } from '#handlers/incomingChatHandler.mjs';
 
@@ -27,10 +27,7 @@ app.use(express.json());
 
 app.use(getAuthorizationMiddleware(secretKey));
 
-app.use((req, _res, next) => {
-  console.log(inspect(req.body, false, 6));
-  next();
-});
+app.use(getRequestLogMiddleware(15));
 
 app.post('/incomingChat', incomingChatHandler);
 
