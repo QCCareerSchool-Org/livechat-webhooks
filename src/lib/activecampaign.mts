@@ -35,7 +35,7 @@ export const createContact = async (
 
   const fields = { countryCode, provinceCode: provinceCode ?? undefined, city: city ?? undefined };
 
-  const postContactResult = await postContact(contact, fields);
+  const postContactResult = await postContact(contact, fields, AbortSignal.timeout(5000));
 
   if (!postContactResult.success) {
     return postContactResult;
@@ -43,14 +43,14 @@ export const createContact = async (
 
   const contactId = postContactResult.value;
 
-  const contactAutomationsResult = await getContactAutomations(contactId);
+  const contactAutomationsResult = await getContactAutomations(contactId, AbortSignal.timeout(5000));
   const contactAutomations = contactAutomationsResult.success ? contactAutomationsResult.value : [];
 
   if (source) {
     const postSourceContactTagsResult = await postContactTags({
       contact: contactId,
       tag: sourceTags[source],
-    });
+    }, AbortSignal.timeout(5000));
 
     if (!postSourceContactTagsResult.success) {
       console.error(postSourceContactTagsResult.error);
@@ -63,7 +63,7 @@ export const createContact = async (
       contact: contactId,
       list: emailListIds[schoolName],
       status: ContactListStatus.ACTIVE,
-    });
+    }, AbortSignal.timeout(5000));
 
     if (!postContactListsResult.success) {
       console.error(postContactListsResult.error);
@@ -79,7 +79,7 @@ export const createContact = async (
         contact: contactId,
         list: courseCode ? smsListIds[schoolName][courseCode] ?? smsListIds[schoolName].default : smsListIds[schoolName].default,
         status: ContactListStatus.ACTIVE,
-      });
+      }, AbortSignal.timeout(5000));
 
       if (!postContactListsResult.success) {
         console.error(postContactListsResult.error);
@@ -100,7 +100,7 @@ export const createContact = async (
       const postContactAutomationsResult = await postContactAutomations({
         contact: contactId,
         automation: automationId,
-      });
+      }, AbortSignal.timeout(5000));
 
       if (!postContactAutomationsResult.success) {
         console.error(postContactAutomationsResult.error);
@@ -120,7 +120,7 @@ export const createContact = async (
         const postContactAutomationsResult = await postContactAutomations({
           contact: contactId,
           automation: automationId,
-        });
+        }, AbortSignal.timeout(5000));
 
         if (!postContactAutomationsResult.success) {
           console.error(postContactAutomationsResult.error);
@@ -143,7 +143,7 @@ export const updateTelephoneNumber = async (emailAddress: string, telephoneNumbe
 
   const contactId = contactResult.value.id;
 
-  const updateResult = await putContact(contactId, { phone: telephoneNumber });
+  const updateResult = await putContact(contactId, { phone: telephoneNumber }, AbortSignal.timeout(5000));
   if (!updateResult.success) {
     return updateResult;
   }
@@ -153,7 +153,7 @@ export const updateTelephoneNumber = async (emailAddress: string, telephoneNumbe
       contact: contactId,
       list: courseCode ? smsListIds[schoolName][courseCode] ?? smsListIds[schoolName].default : smsListIds[schoolName].default,
       status: ContactListStatus.ACTIVE,
-    });
+    }, AbortSignal.timeout(5000));
 
     if (!postContactListsResult.success) {
       console.error(postContactListsResult.error);
